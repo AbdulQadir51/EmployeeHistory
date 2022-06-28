@@ -19,36 +19,40 @@ searchTable = (table, col, search, callback) => {
 
 }
 
-getAll = (URL) => {
-    return fetch(URL)
-        .then(response => response.json())
-        .then(json => {
-            return json.data;
-        })
-        .catch(err => console.error(err));
+
+
+// GET / POST / PUT method
+fetchData = (URL, method, body) => {
+    if (method == 'POST' || method == 'PUT') {
+        return fetch(URL, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
+            })
+            .then(response => response.json())
+            .then(json => {
+                //console.log(json);
+                return json
+
+            })
+            .catch(err => console.error(err));
+    } else {
+        return fetch(URL)
+            .then(response => response.json())
+            .then(json => {
+                return json.data;
+            })
+            .catch(err => console.error(err));
+    }
 }
 
 
-postData = (URL, body) => {
-    return fetch(URL, {
-            method: 'POST', // *GET, POST, PUT, DELETE, etc.
-            headers: {
-                'Content-Type': 'application/json'
-                    // 'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: JSON.stringify(body)
-        })
-        .then(response => response.json())
-        .then(json => {
-            return json
-
-        })
-        .catch(err => console.error(err));
-}
 
 module.exports = {
 
     searchTable: searchTable,
-    postData: postData,
-    getAll: getAll
+    fetchData: fetchData
+
 }
