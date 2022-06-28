@@ -40,7 +40,6 @@ postData = (URL, body) => {
         })
         .then(response => response.json())
         .then(json => {
-            console.log(json.message)
             return json
 
         })
