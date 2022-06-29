@@ -2,7 +2,7 @@ const router = require('express').Router();
 const db = require('../../db/connection');
 
 router.get('/', (req, res) => {
-    const sql = "SELECT r.id,r.title,d.name as department,r.salary FROM role r INNER JOIN department d ON r.department_id = d.id";
+    const sql = "SELECT r.id,r.title,d.name as department,r.salary FROM role r LEFT JOIN department d ON r.department_id = d.id";
     db.query(sql, (err, rows) => {
         if (err) {
             res.status(500).json({ error: err.message });
