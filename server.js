@@ -38,7 +38,9 @@ const options = [{
     type: 'list',
     choices: [
         'View all departments', 'View all roles', 'View all employees',
-        'Add a department', 'Add a role', 'Add an employee', 'Update an employee role'
+        'Add a department', 'Add a role', 'Add an employee', 'Update an employee role',
+        'Update an employee manager', 'View employees by manager', 'View employees by department',
+        'Delete department', 'Delete role', 'Delete an employee', 'View combined salary in each department',
     ],
 }];
 // department question
@@ -72,6 +74,20 @@ promptOptions = () => {
             promptNewEmployee()
         } else if (answers['options'] == "Update an employee role") {
             promptUpdateEmployeeRole()
+        } else if (answers['options'] == "Update an employee manager") {
+            promptUpdateEmployeeManager()
+        } else if (answers['options'] == "View employees by manager") {
+            viewAll("employee/bymanager")
+        } else if (answers['options'] == "View employees by department") {
+            viewAll("employee/bydepartment")
+        } else if (answers['options'] == "Delete department") {
+            promptDeleteDepartment()
+        } else if (answers['options'] == "Delete role") {
+            promptDeleteRole()
+        } else if (answers['options'] == "Delete an employee") {
+            promptDeleteEmployee()
+        } else if (answers['options'] == "View combined salary in each department") {
+            viewAll("employee/salaryby_department")
         }
     }).catch((error) => {
         if (error.isTtyError) {
@@ -189,7 +205,10 @@ promptNewEmployee = () => {
                                 value: emp.id
                             }
                         })
-                        // promp list managers
+                        //add none object at the beginning for managers
+                    employees.unshift({ name: 'none', value: 0 })
+
+                    // promp list managers
                     const q_employee_manager = [{
                         name: 'manager_id',
                         message: 'Who is the manager of this Employee?',
@@ -225,11 +244,12 @@ promptUpdateEmployeeRole = () => {
     let body = {};
     let URL = `${URI}/api/employee`
     fetchData(URL, 'GET', null).then(list_employees => {
-        // map list_departments with name and value
+        // map list_employees with name and value
         let employees = list_employees.map((emp) => {
-                return { name: emp.name, value: emp.id }
-            })
-            // prompt all employee list
+            return { name: emp.name, value: emp.id }
+        })
+
+        // prompt all employee list
         const q_select_employees = [{
             name: 'employee_id',
             message: "Which employee's role do you want to update? ",
@@ -265,7 +285,7 @@ promptUpdateEmployeeRole = () => {
                         body.first_name = employee.first_name;
                         body.last_name = employee.last_name;
                         body.manager_id = employee.manager_id;
-                        updateEmployeeRole(body).then(res => {
+                        updateEmployee(body).then(res => {
                             console.log(res.message)
                             promptOptions();
                         });
@@ -278,6 +298,141 @@ promptUpdateEmployeeRole = () => {
     });
 
 }
+
+promptUpdateEmployeeManager = () => {
+    let body = {};
+    let URL = `${URI}/api/employee`
+    fetchData(URL, 'GET', null).then(list_employees => {
+        // map list_employees with name and value
+        let employees = list_employees.map((emp) => {
+            return { name: emp.name, value: emp.id }
+        })
+
+        // prompt all employee list
+        const q_select_employees = [{
+            name: 'employee_id',
+            message: "Which employee's manager do you want to update? ",
+            type: 'list',
+            choices: employees,
+        }]
+        inquirer.prompt(q_select_employees).then((answer) => {
+            // set employee_id to body
+            body.id = answer.employee_id;
+            //add none object at the beginning for managers
+            employees.unshift({ name: 'none', value: null })
+
+            // prompt all employee list
+
+            const q_select_employee_manager_update = [{
+                name: 'manager_id',
+                message: "Which manager do you want to assign the selected employee? ",
+                type: 'list',
+                choices: employees,
+            }]
+
+            inquirer.prompt(q_select_employee_manager_update).then((ans) => {
+                // set manager_id to body
+                body.manager_id = ans.manager_id;
+
+                // get employee data to update
+                URL = `${URI}/api/employee/${body.id}`
+                fetchData(URL, 'GET', null).then(employee => {
+                    body.first_name = employee.first_name;
+                    body.last_name = employee.last_name;
+                    body.role_id = employee.role_id;
+                    updateEmployee(body).then(res => {
+                        console.log(res.message)
+                        promptOptions();
+                    });
+                });
+
+            });
+
+        });
+    });
+}
+
+
+promptDeleteDepartment = () => {
+
+    // get all departments to prompt list of all departments
+    let URL = `${URI}/api/department`
+    fetchData(URL, 'GET', null).then(list_departments => {
+        // map list_departments with name and value
+        let departments = list_departments.map((department) => {
+                return { name: department.name, value: department.id }
+            })
+            // prompt all departments list
+        const q_select_department = [{
+            name: 'department_id',
+            message: 'Which department do you want to delete? ',
+            type: 'list',
+            choices: departments,
+        }]
+        inquirer.prompt(q_select_department).then((ans) => {
+            URL = `${URI}/api/department/${ans.department_id}`;
+            // delete department method
+            fetchData(URL, 'DELETE', null).then(res => {
+                console.log(res.message)
+                promptOptions();
+            });
+        });
+    });
+}
+
+promptDeleteRole = () => {
+    // get all roles to prompt list of all roles
+    let URL = `${URI}/api/role`
+    fetchData(URL, 'GET', null).then(list_roles => {
+        // map list_roles with name and value
+        let roles = list_roles.map((role) => {
+                return { name: role.title, value: role.id }
+            })
+            // prompt all roles list
+        const q_select_roles = [{
+            name: 'role_id',
+            message: 'Which role do you want to delete? ',
+            type: 'list',
+            choices: roles,
+        }]
+        inquirer.prompt(q_select_roles).then((ans) => {
+            URL = `${URI}/api/role/${ans.role_id}`;
+            // delete role method
+            fetchData(URL, 'DELETE', null).then(res => {
+                console.log(res.message)
+                promptOptions();
+            });
+        });
+    });
+
+}
+
+promptDeleteEmployee = () => {
+    // get all employees to prompt list of all roles
+    let URL = `${URI}/api/employee`
+    fetchData(URL, 'GET', null).then(list_emp => {
+        // map list_emp with name and value
+        let employees = list_emp.map((emp) => {
+                return { name: emp.name, value: emp.id }
+            })
+            // prompt all employees list
+        const q_select_employee = [{
+            name: 'employee_id',
+            message: 'Which employee do you want to delete? ',
+            type: 'list',
+            choices: employees,
+        }]
+        inquirer.prompt(q_select_employee).then((ans) => {
+            URL = `${URI}/api/employee/${ans.employee_id}`;
+            // delete employee method
+            fetchData(URL, 'DELETE', null).then(res => {
+                console.log(res.message)
+                promptOptions();
+            });
+        });
+    });
+}
+
 
 addDepartment = (body) => {
     return new Promise((resolve, reject) => {
@@ -306,7 +461,7 @@ addEmployee = (body) => {
     })
 }
 
-updateEmployeeRole = (body) => {
+updateEmployee = (body) => {
     return new Promise((resolve, reject) => {
         let URL = `${URI}/api/employee/${body.id}`;
         // fetchData helper function

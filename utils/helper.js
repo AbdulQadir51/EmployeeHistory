@@ -38,7 +38,21 @@ fetchData = (URL, method, body) => {
 
             })
             .catch(err => console.error(err));
-    } else {
+
+    }
+    if (method == 'DELETE') {
+        return fetch(URL, {
+                method: method,
+            })
+            .then(response => response.json())
+            .then(json => {
+                //console.log(json);
+                return json
+
+            })
+            .catch(err => console.error(err));
+    }
+    if (method == 'GET') {
         return fetch(URL)
             .then(response => response.json())
             .then(json => {
