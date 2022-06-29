@@ -69,4 +69,20 @@ router.put('/:id', (req, res) => {
 
     })
 });
+
+
+router.delete('/:id', (req, res) => {
+    const sql = "DELETE FROM department WHERE id = ?";
+    const params = [req.params.id];
+
+    db.query(sql, params, (err, result) => {
+        if (err) {
+            res.status(500).json({ message: err.message });
+            return;
+        } else if (result.affectedRows > 0) {
+            res.json({ message: 'department deleted successfully!' });
+        }
+
+    })
+});
 module.exports = router
