@@ -41,7 +41,6 @@ router.post('/', (req, res) => {
         }
         if (result.affectedRows > 0) {
             req.body.id = result.insertId
-            console.log(req.body);
             res.json({ message: 'department added successfully!', data: req.body });;
         } else {
             res.status(500).json({ message: "Failed to add!" });
